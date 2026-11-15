@@ -7,6 +7,7 @@ import numpy as np
 import mediapipe as mp
 import urllib.request
 import pyautogui
+import platform
 
 # SETTINGS
 camera_number = 0
@@ -57,6 +58,31 @@ if not os.path.exists(model_path):
 
 # FACE DETECTORS
 face_detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+system_name = platform.system()
+
+if system_name == "Windows":
+  haar_folder = r"C:\FaceNavAI"
+  os.makedirs(haar_folder, exist_ok=True)
+  haar_path = os.path.join(haar_folder, "haarcascade_frontalface_default.xml")
+
+  if not os.path.isfile(haar_path):
+    local_haar = os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
+
+    if os.path.isfile(local_haar):
+      with open(local_haar, "rb") as src:
+        with open(haar_path, "wb") as dst:
+          dst.write(src.read())
+    else:
+      haar_url = "https://raw.githubusercontent.com/opencv/opencv/4.x/data/haarcascades/haarcascade_frontalface_default.xml"
+      urllib.request.urlretrieve(haar_url, haar_path)
+
+  face_detector = cv2.CascadeClassifier(haar_path)
+
+else:
+  face_detector = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+  )
+
 if face_detector.empty():
   raise RuntimeError("Cannot load Haar face detector")
 
